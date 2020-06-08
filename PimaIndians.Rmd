@@ -1,0 +1,84 @@
+title: "Machine Learning: Predicting Diabetes using Pima Indians Data Set"
+author: "Shakespeare"
+date: "September 25, 2018"
+output: html_document
+---
+```{r}
+library(neuralnet)
+library(caret)
+library(tidyverse)
+library(mlbench)
+library(e1071)
+
+
+```
+```{r}
+#loading in data
+
+data("PimaIndiansDiabetes")
+df <- PimaIndiansDiabetes
+str(df)
+?PimaIndiansDiabetes
+ggplot(df,aes(diabetes, fill=factor(diabetes)))+ geom_bar()
+
+
+#creating a binary variable -> makes new column named binary
+df$binary <- ifelse(df$diabetes == 'neg', 0, 1)
+str(df)
+
+
+```
+
+
+```{r}
+#building training and test set
+rows <- createDataPartition(df$binary,times=1, p=0.7, list = F)
+
+train <- df[rows,]
+test <- df[-rows,]
+
+# first number is rows and 2nd is variables in dataset
+dim(train)
+dim(test)
+```
+
+```{r}
+#names(train)
+#removing the diabetes column to ensure our model can predict
+#train <- train[,-9]
+#test <-test[,-9]
+# str() gives condensed version of R object
+#str(train)
+
+
+model <- train(as.factor(binary) ~ .,
+               data  = train,
+               method = "ranger",
+               trControl = trainControl(method="repeatedcv", number =2, repeats = 2 ))
+
+model
+```
+
+
+```{r}
+pred_train <- predict(model, train)
+
+pred_test <- predict(model, test)
+
+pred_train
+
+#creating confusion matrix of train data set
+confusionMatrix(pred_train, as.factor(train$binary))
+
+#creating confusion matrix of test data set
+confusionMatrix(pred_test, as.factor(test$binary))
+
+```
+
+
+
+
+
+
+
+
